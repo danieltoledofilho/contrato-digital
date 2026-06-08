@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Contrato Digital</title>
+  <style>
+    /* ── CONFIG DE CORES — altere aqui para personalizar ── */
+    :root{
+      --gold:#C9A84C;
+      --dark:#080808;
+      --light:#f4f4f2;
+    }
+
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--light);font-family:'Segoe UI',system-ui,sans-serif;color:#1a1a1a;min-height:100vh}
+
+    /* ── STEPS NAV ── */
+    .steps-nav{background:#fff;border-bottom:1px solid #e0e0e0;padding:14px 24px;position:sticky;top:0;z-index:100}
+    .steps-inner{max-width:740px;margin:0 auto;display:flex;align-items:center;gap:0}
+    .step-item{display:flex;align-items:center;gap:8px;flex:1}
+    .step-circle{width:26px;height:26px;border-radius:50%;background:#e0e0e0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#999;flex-shrink:0;transition:all .3s}
+    .step-circle.active{background:var(--gold);color:#080808}
+    .step-circle.done{background:#333;color:#fff}
+    .step-label{font-size:10px;font-weight:600;color:#bbb;text-transform:uppercase;letter-spacing:.08em}
+    .step-label.active{color:#333}
+    .step-sep{flex:1;height:1px;background:#e0e0e0;margin:0 6px;max-width:36px}
+
+    main{max-width:740px;margin:0 auto;padding:28px 18px 80px}
+
+    /* ── CARDS ── */
+    .card{background:#fff;border-radius:10px;border:1px solid #e0e0e0;overflow:hidden;display:none}
+    .card.active{display:block}
+    .card-header{background:var(--dark);padding:24px 28px}
+    .card-header h2{font-size:1.2rem;color:#fff;margin-bottom:3px}
+    .card-header p{font-size:.82rem;color:#888}
+    .card-body{padding:28px}
+
+    /* ── FORM ── */
+    .section-title{background:#111;color:#fff;font-size:.7rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;padding:7px 12px;border-radius:5px;margin:22px 0 14px;display:block}
+    .section-title:first-child{margin-top:0}
+    .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+    .form-grid .full{grid-column:1/-1}
+    .field label{display:block;font-size:.73rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#666;margin-bottom:5px}
+    .field input,.field select,.field textarea{width:100%;padding:11px 13px;border:1.5px solid #e0e0e0;border-radius:6px;font-size:.9rem;color:#1a1a1a;background:#fafafa;transition:border-color .2s;outline:none;-webkit-appearance:none;font-family:inherit}
+    .field input:focus,.field select:focus,.field textarea:focus{border-color:var(--gold);background:#fff}
+    .field textarea{resize:vertical;min-height:70px}
+    label span.req{color:#e53935}
+
+    /* ── RADIO OPCOES CURSO ── */
+    .curso-opcoes{display:flex;flex-direction:column;gap:8px;margin-top:6px}
+    .curso-opcao{display:flex;align-items:center;gap:10px;padding:11px 14px;border:1.5px solid #e0e0e0;border-radius:7px;cursor:pointer;transition:.2s}
+    .curso-opcao:hover{border-color:var(--gold);background:#fffdf4}
+    .curso-opcao.selected{border-color:var(--gold);background:#fffdf4}
+    .curso-opcao input{width:16px;height:16px;flex-shrink:0;accent-color:var(--gold)}
+    .curso-opcao span{font-size:.88rem;color:#333}
+
+    /* ── BOTOES ── */
+    .btn-next{display:block;width:100%;margin-top:20px;padding:13px;background:var(--dark);color:#fff;border:none;border-radius:8px;font-size:.95rem;font-weight:600;cursor:pointer;transition:.2s;letter-spacing:.02em}
+    .btn-next:hover{background:var(--gold);color:#080808}
+    .btn-back{display:inline-flex;align-items:center;gap:5px;padding:7px 13px;background:transparent;color:#888;border:1px solid #ddd;border-radius:6px;font-size:.82rem;cursor:pointer;margin-bottom:14px;transition:.2s}
+    .btn-back:hover{border-color:var(--gold);color:var(--gold)}
+
+    /* ── CONTRATO (step 2) ── */
+    .contract-doc{font-family:'Times New Roman',Times,serif;font-size:12pt;line-height:1.8;color:#111}
+    .contract-doc h1{text-align:center;font-size:14pt;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px}
+    .contract-doc .subtitulo{text-align:center;font-size:11pt;color:#555;font-style:italic;margin-bottom:24px}
+    .contract-doc .parte-bloco{border:1px solid #ccc;border-radius:4px;overflow:hidden;margin-bottom:14px}
+    .contract-doc .parte-header{background:#111;color:#fff;font-size:9pt;font-weight:bold;letter-spacing:.08em;text-transform:uppercase;padding:6px 12px}
+    .contract-doc .parte-body{padding:10px 14px;font-size:11pt}
+    .contract-doc .dados-curso{background:#f9f7f2;border:1px solid #e8d9b5;border-radius:4px;padding:12px 16px;margin-bottom:14px;font-size:11pt}
+    .contract-doc .dados-curso table{width:100%;border-collapse:collapse}
+    .contract-doc .dados-curso td{padding:3px 0}
+    .contract-doc .dados-curso td:first-child{color:#888;width:160px}
+    .contract-doc hr{border:none;border-top:1px solid #ddd;margin:16px 0}
+    .contract-doc .clausula-titulo{font-size:9pt;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#555;margin:16px 0 6px}
+    .contract-doc p{margin-bottom:8px}
+    .entregaveis-bloco{background:#f0f8f0;border:1px solid #c3e6c3;border-radius:6px;padding:14px 18px;margin:14px 0;display:none}
+    .entregaveis-bloco p{font-size:9pt;font-weight:700;text-transform:uppercase;color:#2d6a2d;margin:0 0 8px}
+    .entregaveis-bloco ul{margin:0;padding-left:20px;font-size:11pt;line-height:1.8}
+
+    /* ── ASSINATURA (step 3) ── */
+    .sig-canvas-wrap{border:2px dashed #ddd;border-radius:8px;background:#fafafa;cursor:crosshair;overflow:hidden}
+    .sig-canvas-wrap.signed{border-color:var(--gold);background:#fffdf4}
+    #sig-canvas{display:block;width:100%;height:140px;touch-action:none}
+    .sig-confirmed-wrap{display:none;text-align:center;padding:12px}
+    .sig-confirmed-wrap img{max-width:220px;border:1px solid #eee;border-radius:6px;padding:8px;background:#fafafa}
+
+    /* ── STEP 4 ── */
+    .done-hero{text-align:center;padding:24px 0 16px}
+    .done-icon{width:64px;height:64px;background:#1a1a1a;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--gold);font-size:1.8rem;margin:0 auto 14px}
+    .done-hero h2{font-size:1.3rem;margin:0 0 6px}
+    .done-hero p{color:#555;font-size:.93rem}
+    .done-info{border:1px solid #e0e0e0;border-radius:8px;overflow:hidden;margin:20px 0}
+    .done-info .row{display:flex;padding:10px 16px;border-bottom:1px solid #f0f0f0;font-size:.88rem}
+    .done-info .row:last-child{border-bottom:none}
+    .done-info .row span:first-child{color:#888;width:120px;flex-shrink:0}
+    .done-info .row span:last-child{font-weight:600}
+    .done-sig{text-align:center;margin:20px 0}
+    .done-sig img{max-width:200px;border:1px solid #eee;border-radius:6px;padding:8px;background:#fafafa}
+    .done-sig p{font-size:11px;color:#aaa;margin-top:5px;text-transform:uppercase;letter-spacing:1px}
+
+    @media(max-width:560px){
+      .form-grid{grid-template-columns:1fr}
+      .form-grid .full{grid-column:1}
+      .step-label{display:none}
+    }
+  </style>
+</head>
+<body>
+
+<!-- STEPS NAV -->
+<nav class="steps-nav">
+  <div class="steps-inner">
+    <div class="step-item">
+      <div class="step-circle active" id="sc-1">1</div>
+      <span class="step-label active" id="sl-1">Dados</span>
+    </div>
+    <div class="step-sep"></div>
+    <div class="step-item">
+      <div class="step-circle" id="sc-2">2</div>
+      <span class="step-label" id="sl-2">Contrato</span>
+    </div>
+    <div class="step-sep"></div>
+    <div class="step-item">
+      <div class="step-circle" id="sc-3">3</div>
+      <span class="step-label" id="sl-3">Assinatura</span>
+    </div>
+    <div class="step-sep"></div>
+    <div class="step-item">
+      <div class="step-circle" id="sc-4">4</div>
+      <span class="step-label" id="sl-4">Confirmado</span>
+    </div>
+  </div>
+</nav>
+
+<main>
+
+  <!-- STEP 1 — DADOS -->
+  <div class="card active" id="card-1">
+    <div class="card-header">
+      <h2>Seus dados</h2>
+      <p>Preencha os dados pessoais para o contrato</p>
+    </div>
+    <div class="card-body">
+
+      <span class="section-title">Curso</span>
+      <!-- PERSONALIZE: altere os radio buttons com as opcoes do seu curso -->
+      <div class="field full">
+        <label>Modalidade <span class="req">*</span></label>
+        <div class="curso-opcoes" id="curso-opcoes">
+          <label class="curso-opcao" onclick="selecionarCurso(this,'Curso Individual — 1 dia (7h) | R$2.000,00','2.000,00')">
+            <input type="radio" name="f-turno" value="Curso Individual — 1 dia (7h) | R$2.000,00"/>
+            <span>Curso Individual — 1 dia (7h) | R$ 2.000,00</span>
+          </label>
+          <label class="curso-opcao" onclick="selecionarCurso(this,'Curso em Turma — 2 dias (14h) | sob consulta','')">
+            <input type="radio" name="f-turno" value="Curso em Turma — 2 dias (14h) | sob consulta"/>
+            <span>Curso em Turma — 2 dias (14h) | sob consulta</span>
+          </label>
+        </div>
+        <input type="hidden" id="f-turno" value=""/>
+      </div>
+
+      <span class="section-title">Dados Pessoais</span>
+      <div class="form-grid">
+        <div class="field full"><label>Nome completo <span class="req">*</span></label><input type="text" id="f-nome" placeholder="Como consta no documento"/></div>
+        <div class="field"><label>CPF <span class="req">*</span></label><input type="text" id="f-cpf" placeholder="000.000.000-00" maxlength="14"/></div>
+        <div class="field"><label>RG</label><input type="text" id="f-rg" placeholder="00.000.000-0"/></div>
+        <div class="field"><label>Data de nascimento</label><input type="date" id="f-nasc"/></div>
+        <div class="field"><label>Estado civil</label>
+          <select id="f-estado-civil">
+            <option value="">Selecione</option>
+            <option>Solteiro(a)</option><option>Casado(a)</option><option>Divorciado(a)</option><option>Viúvo(a)</option><option>União estável</option>
+          </select>
+        </div>
+      </div>
+
+      <span class="section-title">Contato</span>
+      <div class="form-grid">
+        <div class="field"><label>E-mail <span class="req">*</span></label><input type="email" id="f-email" placeholder="seu@email.com"/></div>
+        <div class="field"><label>WhatsApp <span class="req">*</span></label><input type="tel" id="f-whats" placeholder="(11) 99999-9999"/></div>
+        <div class="field"><label>Instagram</label><input type="text" id="f-insta" placeholder="@usuario"/></div>
+      </div>
+
+      <span class="section-title">Endereço</span>
+      <div class="form-grid">
+        <div class="field full"><label>Rua e número <span class="req">*</span></label><input type="text" id="f-rua" placeholder="Rua, número, complemento"/></div>
+        <div class="field"><label>Bairro</label><input type="text" id="f-bairro"/></div>
+        <div class="field"><label>Cidade <span class="req">*</span></label><input type="text" id="f-cidade" placeholder="Sua cidade"/></div>
+        <div class="field"><label>Estado</label><input type="text" id="f-estado" maxlength="2" placeholder="SP"/></div>
+        <div class="field"><label>CEP</label><input type="text" id="f-cep" placeholder="00000-000" maxlength="9"/></div>
+      </div>
+
+      <span class="section-title">Pagamento</span>
+      <div class="form-grid">
+        <div class="field"><label>Data prevista do curso <span class="req">*</span></label><input type="date" id="f-inicio"/></div>
+        <div class="field"><label>Forma de pagamento <span class="req">*</span></label>
+          <select id="f-pagamento">
+            <option value="">Selecione</option>
+            <option>PIX</option><option>Cartão de crédito</option><option>Cartão de débito</option><option>Transferência bancária</option><option>Dinheiro</option>
+          </select>
+        </div>
+        <div class="field"><label>Matrícula paga (R$) <span class="req">*</span></label><input type="text" id="f-matricula" placeholder="500,00"/></div>
+        <div class="field"><label>Saldo restante (R$)</label><input type="text" id="f-saldo" placeholder="1.500,00"/></div>
+        <div class="field full"><label>Valor total (R$) <span class="req">*</span></label><input type="text" id="f-total" placeholder="2.000,00"/></div>
+        <div class="field full"><label>Observações</label><textarea id="f-obs" placeholder="Observações adicionais..."></textarea></div>
+      </div>
+
+      <button class="btn-next" onclick="goStep2()">Avançar para o Contrato →</button>
+    </div>
+  </div>
+
+  <!-- STEP 2 — CONTRATO -->
+  <div class="card" id="card-2">
+    <div class="card-header">
+      <h2>Leia o contrato</h2>
+      <p>Revise todas as condições antes de assinar</p>
+    </div>
+    <div class="card-body">
+      <button class="btn-back" onclick="goStep1()">← Voltar</button>
+
+      <div class="contract-doc">
+        <!-- PERSONALIZE: troque o nome do instrutor abaixo -->
+        <h1>Contrato de Prestação de Serviços Educacionais</h1>
+        <p class="subtitulo">NOME DO INSTRUTOR — Nome do Curso</p>
+
+        <div class="parte-bloco">
+          <div class="parte-header">Contratado (Instrutor)</div>
+          <div class="parte-body">
+            <!-- PERSONALIZE: dados do instrutor -->
+            <strong>Nome do Instrutor</strong>, CPF 000.000.000-00, Sao Paulo/SP.
+          </div>
+        </div>
+
+        <div class="parte-bloco">
+          <div class="parte-header">Contratante (Aluno)</div>
+          <div class="parte-body">
+            <span id="c-nome">—</span>, CPF <span id="c-cpf">—</span>, RG <span id="c-rg">—</span>,
+            nascido(a) em <span id="c-nasc">—</span>.
+            Residente em <span id="c-end">—</span>, <span id="c-bairro">—</span>, <span id="c-cidade">—</span>, CEP <span id="c-cep">—</span>.
+            E-mail: <span id="c-email">—</span>. WhatsApp: <span id="c-whats">—</span>.
+          </div>
+        </div>
+
+        <div class="dados-curso">
+          <table>
+            <tr><td>Modalidade</td><td><strong id="c-turno">—</strong></td></tr>
+            <tr><td>Data prevista</td><td><span id="c-inicio">—</span></td></tr>
+            <tr><td>Forma de pagamento</td><td><span id="c-pagamento">—</span></td></tr>
+            <tr><td>Matrícula paga</td><td>R$ <span id="c-matricula">—</span></td></tr>
+            <tr><td>Saldo restante</td><td>R$ <span id="c-saldo">—</span></td></tr>
+            <tr><td><strong>Valor total</strong></td><td><strong>R$ <span id="c-total">—</span></strong></td></tr>
+          </table>
+        </div>
+
+        <!-- Entregaveis (carregados da aba "Entregaveis" do Sheets) -->
+        <div class="entregaveis-bloco" id="entregaveis-bloco">
+          <p>O que voce vai aprender</p>
+          <ul id="entregaveis-lista"></ul>
+        </div>
+
+        <hr/>
+
+        <!-- PERSONALIZE: edite as clausulas diretamente na aba "Clausulas" do Google Sheets -->
+        <!-- ou altere o texto abaixo direto no HTML -->
+        <p class="clausula-titulo">Cláusula 1 — Do Curso e Funcionamento</p>
+        <p data-cl="1.1">1.1. O curso tem duracao de 1 (um) dia, com carga horaria de 7 horas.</p>
+        <p data-cl="1.2">1.2. O curso possui carater intensivo e pratico.</p>
+
+        <p class="clausula-titulo">Cláusula 2 — Do Preço e Pagamento</p>
+        <p data-cl="2.1">2.1. O valor total e conforme descrito neste contrato.</p>
+        <p data-cl="2.2">2.2. A matricula paga nao sera reembolsada em caso de desistencia.</p>
+
+        <p class="clausula-titulo">Cláusula 3 — Do Cancelamento</p>
+        <p data-cl="3.1">3.1. Cancelamento com 15+ dias: devolucao com desconto da matricula.</p>
+        <p data-cl="3.2">3.2. Cancelamento com menos de 15 dias: retencao integral dos valores.</p>
+
+        <p class="clausula-titulo">Cláusula 4 — Do Foro</p>
+        <p data-cl="4.1">4.1. As partes elegem o foro da comarca de Sao Paulo/SP.</p>
+
+        <hr/>
+        <p style="text-align:center;font-size:10pt;color:#666">
+          Ao avançar, você declara ter lido e concordado com todas as cláusulas deste contrato.
+        </p>
+      </div>
+
+      <button class="btn-next" onclick="goStep3()">Li e concordo — Avançar para Assinatura →</button>
+    </div>
+  </div>
+
+  <!-- STEP 3 — ASSINATURA -->
+  <div class="card" id="card-3">
+    <div class="card-header">
+      <h2>Assine o contrato</h2>
+      <p>Use o dedo ou mouse para assinar no campo abaixo</p>
+    </div>
+    <div class="card-body">
+      <button class="btn-back" onclick="goStep2()">← Voltar</button>
+
+      <div class="sig-canvas-wrap" id="sig-wrap">
+        <canvas id="sig-canvas"></canvas>
+      </div>
+
+      <div class="sig-confirmed-wrap" id="sig-confirmed-wrap">
+        <img id="sig-img" src="" alt="Assinatura"/>
+        <p style="font-size:11px;color:#aaa;margin-top:6px;text-transform:uppercase;letter-spacing:1px">Assinatura confirmada</p>
+      </div>
+
+      <div style="margin-top:14px">
+        <label style="display:block;font-size:.75rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#555;margin-bottom:5px">Nome completo (por extenso) *</label>
+        <input type="text" id="sig-nome" placeholder="Digite seu nome completo" style="width:100%;padding:10px 13px;border:1.5px solid #ccc;border-radius:6px;font-size:15px"/>
+      </div>
+
+      <div class="sig-actions" style="margin-top:14px;display:flex;gap:10px">
+        <button onclick="clearSig()" style="padding:10px 20px;font-size:13px;border:1.5px solid #ddd;background:#fff;border-radius:6px;cursor:pointer;color:#555">↺ Limpar</button>
+        <button id="btn-confirmar" onclick="confirmSig()" style="padding:10px 20px;font-size:13px;border:none;background:#1a1a1a;color:#fff;border-radius:6px;cursor:pointer;font-weight:600">✓ Confirmar Assinatura</button>
+      </div>
+
+      <input type="hidden" id="sig-data" value=""/>
+    </div>
+  </div>
+
+  <!-- STEP 4 — CONFIRMADO -->
+  <div class="card" id="card-4">
+    <div class="card-body">
+      <div class="done-hero">
+        <div class="done-icon">✓</div>
+        <h2>Contrato registrado com sucesso!</h2>
+        <p>Obrigado(a), <strong id="done-nome"></strong>. Seu contrato foi assinado e um e-mail foi enviado com o PDF.</p>
+      </div>
+
+      <div class="done-info">
+        <div class="row"><span>Nome</span><span id="done-nome2"></span></div>
+        <div class="row"><span>CPF</span><span id="done-cpf"></span></div>
+        <div class="row"><span>Curso</span><span id="done-curso"></span></div>
+        <div class="row"><span>Data</span><span id="done-inicio"></span></div>
+        <div class="row"><span>Valor total</span><span id="done-total"></span></div>
+        <div class="row"><span>E-mail</span><span id="done-email"></span></div>
+        <div class="row"><span>Data/hora</span><span id="done-data"></span></div>
+      </div>
+
+      <div style="background:#f0f9f0;border:1px solid #b2d8b2;border-radius:8px;padding:12px 16px;text-align:center;font-size:.85rem;color:#2d6a2d;margin:16px 0">
+        Contrato enviado para <strong id="done-email2"></strong>
+      </div>
+
+      <div class="done-sig">
+        <img id="done-sig" src="" alt="Assinatura digital"/>
+        <p>Assinatura digital registrada</p>
+      </div>
+
+      <button onclick="window.print()" style="width:100%;padding:13px;border:none;background:#1a1a1a;color:#fff;border-radius:8px;font-size:14px;cursor:pointer;font-weight:600">🖨 Salvar / Imprimir PDF</button>
+    </div>
+  </div>
+
+</main>
+
+<!-- html2pdf.js — gera o PDF no browser, mesmo padrao do contrato da Fabiana Toledo -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script>
+// ── CONFIGURACAO — altere para o seu contrato ──────────────────
+var WEBHOOK_URL = 'COLE_AQUI_A_URL_DO_APPS_SCRIPT'
+var NOME_CURSO_JS = 'Nome do Seu Curso'
+// ──────────────────────────────────────────────────────────────
+
+function fmt(id){var el=document.getElementById(id);return el?el.value.trim():''}
+function set(id,v){var el=document.getElementById(id);if(el)el.textContent=v||'—'}
+
+var entregaveisCarregados = []
+
+function setStep(n){
+  [1,2,3,4].forEach(function(i){
+    document.getElementById('card-'+i).classList.toggle('active',i===n)
+    var sc=document.getElementById('sc-'+i),sl=document.getElementById('sl-'+i)
+    if(i<n){sc.classList.add('done');sc.classList.remove('active');sc.textContent='✓'}
+    else if(i===n){sc.classList.add('active');sc.classList.remove('done');sc.textContent=i}
+    else{sc.classList.remove('active','done');sc.textContent=i}
+    if(sl)sl.classList.toggle('active',i===n)
+  })
+  window.scrollTo({top:0,behavior:'smooth'})
+}
+
+function selecionarCurso(el, valor, total){
+  document.querySelectorAll('.curso-opcao').forEach(function(c){c.classList.remove('selected')})
+  el.classList.add('selected')
+  document.getElementById('f-turno').value = valor
+  if(total) document.getElementById('f-total').value = total
+}
+
+// Carrega clausulas e entregaveis do Sheets ao iniciar
+window.addEventListener('load', function(){
+  fetch(WEBHOOK_URL+'?action=getClauses')
+    .then(function(r){return r.json()})
+    .then(function(data){
+      document.querySelectorAll('[data-cl]').forEach(function(el){
+        var id=el.getAttribute('data-cl')
+        if(data[id]) el.textContent = id+'. '+data[id]
+      })
+    }).catch(function(){})
+
+  fetch(WEBHOOK_URL+'?action=getEntregaveis')
+    .then(function(r){return r.json()})
+    .then(function(lista){
+      entregaveisCarregados = lista || []
+      var container=document.getElementById('entregaveis-lista')
+      if(!container||!lista.length) return
+      container.innerHTML=''
+      lista.forEach(function(item){
+        var li=document.createElement('li')
+        li.textContent=item
+        container.appendChild(li)
+      })
+      document.getElementById('entregaveis-bloco').style.display='block'
+    }).catch(function(){})
+})
+
+function validarCPF(cpf){
+  cpf=cpf.replace(/\D/g,'')
+  if(cpf.length!==11||/^(.)\1+$/.test(cpf)) return false
+  var s=0
+  for(var i=0;i<9;i++) s+=parseInt(cpf[i])*(10-i)
+  var r=11-(s%11);if(r>=10)r=0
+  if(r!==parseInt(cpf[9])) return false
+  s=0
+  for(var i=0;i<10;i++) s+=parseInt(cpf[i])*(11-i)
+  r=11-(s%11);if(r>=10)r=0
+  return r===parseInt(cpf[10])
+}
+
+function goStep1(){setStep(1)}
+
+function goStep2(){
+  var nome=fmt('f-nome'),cpf=fmt('f-cpf'),email=fmt('f-email'),whats=fmt('f-whats'),
+      rua=fmt('f-rua'),cidade=fmt('f-cidade'),inicio=fmt('f-inicio'),
+      pagamento=fmt('f-pagamento'),total=fmt('f-total'),turno=fmt('f-turno'),matricula=fmt('f-matricula')
+  if(!nome||!cpf||!email||!whats||!rua||!cidade||!inicio||!pagamento||!total||!turno||!matricula){
+    alert('Por favor, preencha todos os campos obrigatorios (*).')
+    return
+  }
+  if(!validarCPF(cpf)){alert('CPF invalido. Verifique o numero informado.');return}
+
+  set('c-nome',nome); set('c-cpf',cpf); set('c-rg',fmt('f-rg'))
+  var nasc=fmt('f-nasc')
+  set('c-nasc',nasc?new Date(nasc+'T12:00:00').toLocaleDateString('pt-BR'):'—')
+  set('c-end',rua); set('c-bairro',fmt('f-bairro')); set('c-cidade',cidade+' / '+fmt('f-estado'))
+  set('c-cep',fmt('f-cep')); set('c-whats',whats); set('c-email',email)
+  set('c-turno',turno)
+  set('c-inicio',new Date(inicio+'T12:00:00').toLocaleDateString('pt-BR'))
+  set('c-pagamento',pagamento); set('c-matricula',matricula)
+  set('c-saldo',fmt('f-saldo')||'—'); set('c-total',total)
+  setStep(2)
+}
+
+function goStep3(){setStep(3);resizeCanvas()}
+
+// ── CANVAS DE ASSINATURA ──
+var canvas=document.getElementById('sig-canvas')
+var ctx=canvas.getContext('2d')
+var drawing=false, hasSig=false
+
+function resizeCanvas(){
+  var ratio=window.devicePixelRatio||1
+  var rect=canvas.getBoundingClientRect()
+  canvas.width=rect.width*ratio; canvas.height=rect.height*ratio
+  ctx.scale(ratio,ratio)
+  ctx.strokeStyle='#111';ctx.lineWidth=2.5;ctx.lineCap='round';ctx.lineJoin='round'
+}
+
+function getPos(e){var r=canvas.getBoundingClientRect();var s=e.touches?e.touches[0]:e;return{x:s.clientX-r.left,y:s.clientY-r.top}}
+canvas.addEventListener('mousedown',function(e){drawing=true;ctx.beginPath();var p=getPos(e);ctx.moveTo(p.x,p.y)})
+canvas.addEventListener('mousemove',function(e){if(!drawing)return;var p=getPos(e);ctx.lineTo(p.x,p.y);ctx.stroke();hasSig=true;canvas.closest('.sig-canvas-wrap').classList.add('signed')})
+canvas.addEventListener('mouseup',function(){drawing=false})
+canvas.addEventListener('mouseleave',function(){drawing=false})
+canvas.addEventListener('touchstart',function(e){e.preventDefault();drawing=true;ctx.beginPath();var p=getPos(e);ctx.moveTo(p.x,p.y)},{passive:false})
+canvas.addEventListener('touchmove',function(e){e.preventDefault();if(!drawing)return;var p=getPos(e);ctx.lineTo(p.x,p.y);ctx.stroke();hasSig=true;canvas.closest('.sig-canvas-wrap').classList.add('signed')},{passive:false})
+canvas.addEventListener('touchend',function(){drawing=false})
+
+function clearSig(){ctx.clearRect(0,0,canvas.width,canvas.height);hasSig=false;canvas.closest('.sig-canvas-wrap').classList.remove('signed')}
+
+// ── GERA HTML DO CONTRATO PARA O PDF ──
+function buildContractHTML(d){
+  var end=(d.endereco||'')+(d.bairro?', '+d.bairro:'')+(d.cidade?', '+d.cidade:'')+(d.estado?' / '+d.estado:'')+(d.cep?' — CEP '+d.cep:'')
+  var listaEnt=''
+  if(entregaveisCarregados.length){
+    listaEnt='<h3 style="font-size:10px;text-transform:uppercase;margin:12px 0 4px">O que voce vai aprender</h3><ul style="margin:3px 0 8px 16px;font-size:11px">'
+    entregaveisCarregados.forEach(function(item){listaEnt+='<li>'+item+'</li>'})
+    listaEnt+='</ul>'
+  }
+  return'<!DOCTYPE html><html><head><meta charset="UTF-8">'
+    +'<style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:Arial,sans-serif;font-size:12px;color:#222;padding:24px 32px;line-height:1.6}'
+    +'.hd{text-align:center;border-bottom:2px solid #333;padding-bottom:10px;margin-bottom:14px}'
+    +'.hd h1{font-size:16px;text-transform:uppercase;letter-spacing:1px}.hd p{color:#666;font-size:10px;margin-top:2px}'
+    +'h3{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin:12px 0 4px;border-bottom:1px solid #eee;padding-bottom:2px}'
+    +'.box{background:#f5f5f5;border-radius:4px;padding:8px 12px;margin:8px 0;font-size:11px}'
+    +'.box strong{display:inline-block;min-width:130px;color:#555}'
+    +'hr{border:none;border-top:1px solid #ddd;margin:8px 0}p{margin-bottom:4px;font-size:11.5px}'
+    +'.sig{text-align:center;margin-top:18px}.sig img{max-width:180px;border:1px solid #ccc;padding:4px;border-radius:4px;display:block;margin:0 auto 5px}'
+    +'.sig-line{border-top:1px solid #333;width:200px;margin:0 auto 3px}.sig p{font-size:10px;color:#555}'
+    +'</style></head><body>'
+    +'<div class="hd"><h1>'+NOME_CURSO_JS+'</h1><p>Contrato de Prestacao de Servicos Educacionais</p></div>'
+    +'<p><strong>CONTRATANTE:</strong> <strong>'+(d.nome||'')+'</strong>, CPF '+(d.cpf||'')+', RG '+(d.rg||'—')+'.</p>'
+    +'<p style="margin-bottom:8px">Residente: '+end+'. E-mail: '+(d.email||'')+'. WhatsApp: '+(d.whatsapp||'')+'.</p>'
+    +'<div class="box">'
+    +'<strong>Modalidade:</strong> '+(d.modalidade||'')+'<br>'
+    +'<strong>Data do curso:</strong> '+(d.data_curso_fmt||'—')+'<br>'
+    +'<strong>Forma de pagamento:</strong> '+(d.forma_pagamento||'')+'<br>'
+    +'<strong>Matricula paga:</strong> R$ '+(d.matricula_paga||'—')+'<br>'
+    +(d.saldo?'<strong>Saldo restante:</strong> R$ '+d.saldo+'<br>':'')
+    +'<strong>VALOR TOTAL: R$ '+(d.valor_total||'')+'</strong>'
+    +'</div>'
+    +listaEnt+'<hr>'
+    +'<h3>Clausula 1 - Do Curso</h3><p>1.1. Conforme dados acima.</p>'
+    +'<h3>Clausula 2 - Do Preco</h3><p>2.1. Valor total: R$ '+(d.valor_total||'')+'. Matricula nao reembolsavel em caso de desistencia.</p>'
+    +'<h3>Clausula 3 - Do Cancelamento</h3><p>3.1. Aviso 15+ dias: devolucao com desconto da matricula. Menos de 15 dias: retencao integral.</p>'
+    +'<hr>'
+    +'<p style="text-align:center;font-size:10px;color:#666;margin:12px 0">Sao Paulo, '+(d.data_hora_assinatura||'')+'</p>'
+    +'<div class="sig">'
+    +(d.assinatura?'<img src="'+d.assinatura+'" alt="Assinatura">':'')
+    +'<div class="sig-line"></div>'
+    +'<p><strong>'+(d.nome_assinatura||d.nome||'')+'</strong></p>'
+    +'<p>CPF: '+(d.cpf||'')+'</p>'
+    +'<p>Assinado em '+(d.data_hora_assinatura||'')+'</p>'
+    +'</div></body></html>'
+}
+
+// ── CONFIRMA ASSINATURA E ENVIA ──
+async function confirmSig(){
+  if(!hasSig){alert('Por favor, assine no campo antes de confirmar.');return}
+  var nomeAss=document.getElementById('sig-nome').value.trim()
+  if(!nomeAss){alert('Por favor, digite seu nome completo antes de confirmar.');return}
+
+  var btn=document.getElementById('btn-confirmar')
+  if(btn){btn.disabled=true;btn.textContent='Gerando contrato...'}
+
+  var dataURL=canvas.toDataURL('image/png')
+  document.getElementById('sig-img').src=dataURL
+  document.getElementById('sig-confirmed-wrap').style.display='block'
+  canvas.style.display='none'
+  document.querySelector('.sig-actions').style.display='none'
+  document.getElementById('sig-nome').style.display='none'
+  document.getElementById('sig-nome').previousElementSibling.style.display='none'
+
+  var nome=fmt('f-nome'),cpf=fmt('f-cpf'),inicio=fmt('f-inicio')
+  var agora=new Date()
+  var dtStr=agora.toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'})+' as '+agora.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})
+  var emailAluno=fmt('f-email')
+  var inicioDt=inicio?new Date(inicio+'T12:00:00').toLocaleDateString('pt-BR'):'—'
+
+  set('done-nome',nome); set('done-nome2',nome); set('done-cpf',cpf)
+  set('done-curso',NOME_CURSO_JS)
+  set('done-inicio',inicioDt)
+  set('done-total','R$ '+fmt('f-total'))
+  set('done-email',emailAluno); set('done-email2',emailAluno)
+  set('done-data',dtStr)
+  document.getElementById('done-sig').src=dataURL
+
+  var payload={
+    criado_em: agora.toLocaleString('pt-BR'),
+    nome: nome, nome_assinatura: nomeAss,
+    cpf: cpf, rg: fmt('f-rg'), data_nasc: fmt('f-nasc'),
+    endereco: fmt('f-rua'), bairro: fmt('f-bairro'),
+    cidade: fmt('f-cidade'), estado: fmt('f-estado'), cep: fmt('f-cep'),
+    email: emailAluno, whatsapp: '+55 '+fmt('f-whats'), instagram: fmt('f-insta'),
+    estado_civil: fmt('f-estado-civil'),
+    curso: NOME_CURSO_JS,
+    modalidade: fmt('f-turno'),
+    data_curso: inicio, data_curso_fmt: inicioDt,
+    forma_pagamento: fmt('f-pagamento'),
+    matricula_paga: fmt('f-matricula'),
+    saldo: fmt('f-saldo'),
+    valor_total: fmt('f-total'),
+    observacoes: fmt('f-obs'),
+    assinatura: dataURL,
+    data_hora_assinatura: dtStr
+  }
+
+  // Gera PDF no browser com html2pdf.js e inclui como base64 no payload
+  try {
+    var pdfUri = await html2pdf()
+      .set({
+        margin:[10,12,10,12],
+        filename: NOME_CURSO_JS.replace(/\s+/g,'_')+'.pdf',
+        image:{type:'jpeg',quality:0.92},
+        html2canvas:{scale:2,useCORS:true,logging:false},
+        jsPDF:{unit:'mm',format:'a4',orientation:'portrait'}
+      })
+      .from(buildContractHTML(payload))
+      .output('datauristring')
+    payload.pdf_base64 = pdfUri.split(',')[1]
+  } catch(e){ /* segue sem PDF se falhar */ }
+
+  // Envia para o Apps Script (webhook permanente — nunca expira)
+  fetch(WEBHOOK_URL,{
+    method:'POST',
+    headers:{'Content-Type':'text/plain;charset=utf-8'},
+    body:JSON.stringify(payload),
+    redirect:'follow'
+  }).catch(function(){})
+
+  setStep(4)
+}
+
+// Mascaras
+document.getElementById('f-cpf').addEventListener('input',function(){
+  var v=this.value.replace(/\D/g,'').slice(0,11)
+  v=v.replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})(\d{1,2})$/,'$1-$2')
+  this.value=v
+})
+document.getElementById('f-cep').addEventListener('input',function(){
+  var v=this.value.replace(/\D/g,'').slice(0,8)
+  v=v.replace(/(\d{5})(\d)/,'$1-$2')
+  this.value=v
+})
+</script>
+</body>
+</html>
