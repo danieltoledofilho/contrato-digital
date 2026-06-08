@@ -1,148 +1,167 @@
 # Contrato Digital — WordPress + Google Apps Script
 
-Sistema completo de contrato digital para cursos presenciais.
+Sistema completo de contrato digital com assinatura canvas, registro no Google Sheets e envio de email com PDF anexado.
 
-**Como funciona:** formulario de 4 etapas no WordPress → aluno assina digitalmente → Google Apps Script salva no Sheets + envia email com PDF anexado para o aluno e para voce. Sem n8n, sem tokens, sem expiracao.
+**Como funciona:** formulario 4 etapas no WordPress → aluno assina digitalmente → **PDF gerado no browser** → Google Apps Script salva no Sheets + envia email com PDF para o aluno e para voce.
 
----
-
-## O que esta incluso
-
-- `contrato.html` — pagina do contrato (colar no WordPress)
-- `apps_script.gs` — backend do webhook (implantar no Google Apps Script)
+Sem n8n. Sem tokens. Sem nada que expira.
 
 ---
 
-## Prerequisitos
+## Arquivos
 
-- Site WordPress (qualquer hospedagem)
-- Conta Google (Gmail)
-- Nenhuma outra ferramenta necessaria
+| Arquivo | O que e |
+|---|---|
+| `contrato.html` | Pagina do contrato — colar no WordPress |
+| `apps_script.gs` | Backend do webhook — implantar no Google Apps Script |
+| `README.md` | Este guia |
 
 ---
 
-## Setup — passo a passo
+## Como configurar (passo a passo)
 
 ### 1. Google Sheets
 
-1. Acesse [sheets.google.com](https://sheets.google.com) e crie uma nova planilha
-2. Copie o ID da planilha na URL (o que fica entre `/d/` e `/edit`):
+1. Acesse [sheets.google.com](https://sheets.google.com) e crie uma planilha nova
+2. Copie o **ID** da URL — e a parte entre `/d/` e `/edit`:
    ```
-   https://docs.google.com/spreadsheets/d/SEU_ID_AQUI/edit
+   https://docs.google.com/spreadsheets/d/ESTE_TRECHO_AQUI/edit
    ```
-3. Guarde esse ID — voce vai usar no passo seguinte
+3. Guarde esse ID
+
+---
 
 ### 2. Google Apps Script
 
+> **IMPORTANTE:** Use o **Safari** (Mac) ou o **Firefox** para esta etapa. O Chrome tem tradutor automatico que quebra o codigo JavaScript.
+
 1. Acesse [script.google.com](https://script.google.com)
-2. Clique em **"Novo projeto"**
+2. Clique em **Novo projeto**
 3. Apague o codigo que aparece
-4. Abra o arquivo `apps_script.gs` no TextEdit (Mac) ou Bloco de Notas (Windows)
-5. Selecione tudo (`Ctrl+A`) e copie (`Ctrl+C`)
-6. Cole no editor do Apps Script (`Ctrl+V`)
-7. **Edite a secao de configuracao no topo do arquivo:**
+4. Abra o arquivo `apps_script.gs` no **TextEdit** (Mac) ou **Bloco de Notas** (Windows)
+5. Selecione tudo (`Cmd+A` ou `Ctrl+A`) e copie (`Cmd+C` ou `Ctrl+C`)
+6. Cole no editor do Apps Script (`Cmd+V` ou `Ctrl+V`)
+7. **Edite a secao CONFIG no topo do arquivo:**
    ```javascript
-   var SHEET_ID           = 'COLE_O_ID_DA_SUA_PLANILHA_AQUI';
-   var EMAIL_RESPONSAVEL  = 'seu-email@gmail.com';
-   var NOME_INSTRUTOR     = 'Seu Nome Completo';
-   var NOME_CURSO         = 'Nome do Seu Curso';
-   var WHATSAPP_NUM       = '5511999999999';
-   var WHATSAPP_DISPLAY   = '(11) 99999-9999';
-   var CIDADE             = 'Sua Cidade';
-   var ESTADO_FORO        = 'Sua Cidade/UF';
+   var SHEET_ID          = 'COLE_O_ID_DA_SUA_PLANILHA_AQUI';
+   var EMAIL_INSTRUTOR   = 'seu-email@gmail.com';
+   var NOME_INSTRUTOR    = 'Seu Nome Completo';
+   var NOME_CURSO        = 'Nome do Seu Curso';
+   var WHATSAPP_NUM      = '5511999999999';
+   var WHATSAPP_DISPLAY  = '(11) 99999-9999';
+   var CIDADE_FORO       = 'Sao Paulo/SP';
    ```
-8. Salve com `Ctrl+S`
-9. Clique em **"Implantar"** > **"Novo deployment"**
-   - Tipo: **Web app**
+8. Salve com `Cmd+S` (ou `Ctrl+S`)
+9. Clique em **Implantar** → **Novo deployment**
+   - Tipo: **App da Web**
    - Executar como: **Eu** (sua conta Google)
    - Quem tem acesso: **Qualquer pessoa**
-10. Clique em **"Implantar"**, autorize e copie a URL gerada
+10. Clique em **Implantar** → autorize quando o Google pedir → copie a **URL gerada**
+
+A URL vai parecer com isso:
+```
+https://script.google.com/macros/s/AKfycb.../exec
+```
+
+---
 
 ### 3. WordPress
 
-1. No painel do WordPress, crie uma nova pagina
-2. Mude o template para **"Canvas"** (sem cabecalho/rodape do tema)
-3. Adicione um bloco de **HTML personalizado**
+> **IMPORTANTE:** Disable o tradutor do Chrome nesta pagina tambem.
+
+1. No painel do WordPress, crie uma **pagina nova**
+2. Mude o template para **Canvas** ou **Largura total** (sem cabecalho/rodape do tema)
+3. Adicione um bloco de **HTML personalizado** (Custom HTML)
 4. Abra o arquivo `contrato.html` no TextEdit / Bloco de Notas
 5. Selecione tudo e cole no bloco HTML
-6. **Localize a secao CONFIG no topo do script** e edite:
+6. **Localize as 2 linhas de CONFIG no topo do script** e edite:
    ```javascript
-   var CONFIG = {
-     WEBHOOK_URL: 'COLE_A_URL_DO_APPS_SCRIPT_AQUI',
-     INSTRUTOR_NOME: 'Seu Nome',
-     INSTRUTOR_WHATSAPP: '5511999999999',
-     // ...
-   }
+   var WEBHOOK_URL = 'COLE_AQUI_A_URL_DO_APPS_SCRIPT'
+   var NOME_CURSO_JS = 'Nome do Seu Curso'
    ```
-7. Publique a pagina
+7. Ainda no HTML, procure o bloco de opcoes do curso e edite para o seu curso:
+   ```html
+   <label class="curso-opcao" onclick="selecionarCurso(this,'Modalidade A','2.000,00')">
+     <input type="radio" .../>
+     <span>Modalidade A — 1 dia | R$ 2.000,00</span>
+   </label>
+   ```
+8. Publique a pagina
+
+---
 
 ### 4. Teste
 
-Acesse a pagina publicada, preencha um contrato com seu proprio email e assine. Verifique:
+Acesse a pagina publicada, preencha o formulario com seu proprio email e assine. Verifique:
 - [ ] Email chegou para voce (aluno de teste)
-- [ ] Email chegou para o email do responsavel
-- [ ] PDF esta anexado nos dois emails
+- [ ] Email chegou para o email do instrutor
+- [ ] **PDF esta anexado** nos dois emails com a assinatura visivel
 - [ ] Linha apareceu na planilha do Google Sheets
 
 ---
 
-## Personalizando as clausulas
+## Personalizar clausulas e entregaveis
 
-Na primeira submissao de contrato, o Apps Script cria automaticamente uma aba **"Clausulas"** na sua planilha. Voce pode editar as clausulas diretamente nessa aba — sem precisar mexer no codigo. As mudancas valem para o proximo contrato gerado.
+Na primeira submissao, o Apps Script cria automaticamente duas abas na sua planilha:
+
+| Aba | O que e |
+|---|---|
+| **Clausulas** | Texto de cada clausula do contrato. Edite a coluna "Texto" para alterar. |
+| **Entregaveis** | O que o aluno vai aprender. Aparece no passo 2 do contrato e no PDF. |
+
+Voce edita direto na planilha. Nao precisa mexer no codigo.
 
 ---
 
-## Personalizando o visual
+## Personalizar o visual
 
-No arquivo `contrato.html`, localize a secao `CONFIG` e altere:
-
-```javascript
-COR_PRIMARIA: '#C9A84C',    // cor principal (dourado por padrao)
-COR_FUNDO:    '#080808',    // cor do cabecalho (preto por padrao)
-CURSOS: [
-  {
-    label: 'Nome do Curso — Modalidade A | 1 dia | das 10h as 17h',
-    valor_total: '2.000,00'
-  },
-  {
-    label: 'Nome do Curso — Modalidade B | 2 dias | das 10h as 17h',
-    valor_total: ''  // deixe vazio para o aluno preencher
-  }
-]
+No arquivo `contrato.html`, no topo do CSS:
+```css
+:root{
+  --gold:#C9A84C;   /* cor principal */
+  --dark:#080808;   /* cor do cabecalho */
+  --light:#f4f4f2;  /* cor do fundo */
+}
 ```
 
 ---
 
-## Arquitetura
+## Como funciona o PDF (por que nunca expira)
 
 ```
-Aluno preenche o formulario (WordPress)
+Aluno preenche o formulario
         |
         v
-Google Apps Script (webhook permanente)
+Browser gera o PDF com html2pdf.js (100% no computador do aluno)
         |
-        +-- Salva na planilha (Google Sheets)
-        |       |
-        |       +-- Aba "Contratos" (dados do aluno)
-        |       +-- Aba "Clausulas" (editavel pelo instrutor)
+        v
+PDF vira base64 e e incluido no payload
         |
-        +-- Gera PDF (DocumentApp — sem API externa)
+        v
+Google Apps Script recebe o base64 e converte para .pdf
         |
-        +-- Envia email para o aluno (contrato + PDF)
-        +-- Envia email para o instrutor (resumo + contrato + PDF)
+        +-- Salva dados no Google Sheets (aba "Contratos")
+        +-- Envia email para o aluno com PDF anexado
+        +-- Envia email para o instrutor com PDF anexado
 ```
 
-**Por que nunca expira:** o Apps Script usa `DocumentApp` e `MailApp` — servicos basicos do Google sempre ativos. Nao ha tokens OAuth, nao ha servicos de terceiros, nao ha n8n.
+**Por que nunca expira:**
+- O PDF e gerado no browser — sem servidor, sem API
+- O Apps Script usa apenas `SpreadsheetApp` e `MailApp` — servicos basicos do Google, sempre ativos
+- Nao ha tokens OAuth, nao ha servicos de terceiros
 
 ---
 
-## Duvidas frequentes
+## Perguntas frequentes
 
-**O PDF nao tem o design colorido do email. E normal?**
-Sim. O PDF e gerado pelo Google Docs, que tem formatacao mais simples. O conteudo e identico — dados do aluno, clausulas e assinatura estao todos la.
+**Preciso de hospedagem especial?**
+Nao. Funciona em qualquer WordPress, ate na versao mais basica.
 
 **Posso usar sem WordPress?**
-Sim. O `contrato.html` e HTML puro e funciona em qualquer hospedagem ou ate em uma pagina estatica (GitHub Pages, Netlify, etc.).
+Sim. O `contrato.html` e HTML puro — funciona em qualquer hospedagem, GitHub Pages, Netlify, etc.
 
-**O sistema funciona sem internet?**
-Nao. Tanto o envio para o Apps Script quanto a busca das clausulas precisam de conexao.
+**O Chrome quebrou o meu codigo ao colar — funcao virou outro nome**
+O Chrome tem um tradutor automatico que renomeia variaveis JavaScript ao colar. Use o **Safari** ou o **Firefox** para colar o codigo no Apps Script. Nunca use o Chrome para essa etapa.
+
+**O PDF nao tem a assinatura**
+Isso acontece se o html2pdf nao conseguiu capturar o canvas. Certifique-se de que a versao do `contrato.html` que voce colou e a mais recente deste repositorio — ela usa DOM element ao inves de string HTML, o que resolve este problema.
