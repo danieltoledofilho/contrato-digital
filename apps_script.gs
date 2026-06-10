@@ -88,34 +88,51 @@ function salvarNaSheet(d) {
       'Email','WhatsApp','Instagram','Estado Civil',
       'Endereco','Bairro','Cidade','Estado','CEP',
       'Curso','Modalidade','Forma Pagamento',
-      'Valor Total','Observacoes','Data Hora Assinatura'
+      'Valor Matricula','Valor a Pagar','Valor Total',
+      'Observacoes','Data Hora Assinatura'
     ])
     sh.setFrozenRows(1)
+  } else {
+    // Garantir que as colunas novas existem (planilha criada antes desta versão)
+    var header = sh.getRange(1, 1, 1, sh.getLastColumn()).getValues()[0]
+    if (header.indexOf('Valor Matricula') === -1) {
+      var lastCol = sh.getLastColumn()
+      sh.getRange(1, lastCol + 1).setValue('Valor Matricula')
+      sh.getRange(1, lastCol + 2).setValue('Valor a Pagar')
+    }
   }
 
   sh.appendRow([
-    d.criado_em         || '',
-    d.nome              || '',
-    d.nome_assinatura   || '',
-    d.cpf               || '',
-    d.rg                || '',
-    d.data_nasc         || '',
-    d.email             || '',
-    d.whatsapp          || '',
-    d.instagram         || '',
-    d.estado_civil      || '',
-    d.endereco          || '',
-    d.bairro            || '',
-    d.cidade            || '',
-    d.estado            || '',
-    d.cep               || '',
-    d.curso             || '%%NOME_CURSO_SIMPLES%% — Online',
-    d.modalidade        || 'Online · Acesso Vitalicio',
-    d.forma_pagamento   || '',
-    d.valor_total       || '%%VALOR_PADRAO%%',
-    d.observacoes       || '',
-    d.data_hora_assinatura || ''
+    d.criado_em              || '',
+    d.nome                   || '',
+    d.nome_assinatura        || '',
+    d.cpf                    || '',
+    d.rg                     || '',
+    d.data_nasc              || '',
+    d.email                  || '',
+    d.whatsapp               || '',   // corrigido abaixo (evita #ERROR! com +55)
+    d.instagram              || '',
+    d.estado_civil           || '',
+    d.endereco               || '',
+    d.bairro                 || '',
+    d.cidade                 || '',
+    d.estado                 || '',
+    d.cep                    || '',
+    d.curso                  || '%%NOME_CURSO_SIMPLES%% — Online',
+    d.modalidade             || 'Online · Acesso Vitalicio',
+    d.forma_pagamento        || '',
+    d.matricula              || '0,00',
+    d.saldo                  || '0,00',
+    d.valor_total            || '0,00',
+    d.observacoes            || '',
+    d.data_hora_assinatura   || ''
   ])
+
+  // WhatsApp começa com + e o Sheets interpreta como fórmula → forçar texto
+  var lastRow = sh.getLastRow()
+  var waCell  = sh.getRange(lastRow, 8)
+  waCell.setNumberFormat('@')
+  waCell.setValue(d.whatsapp || '')
 }
 
 // ─── GERAR PDF BLOB ───────────────────────────────────────
@@ -290,6 +307,45 @@ function initEntregaveisTab() {
   entregaveis.forEach(function(row) { sh.appendRow(row) })
 }
 
+// ─── CORRIGIR PLANILHA EXISTENTE (rodar UMA vez) ─────────
+function corrigirPlanilha() {
+  var ss = SpreadsheetApp.openById(getSheetId())
+  var sh = ss.getSheetByName(SHEET_NAME)
+  if (!sh) { Logger.log('❌ Aba não encontrada'); return }
+
+  var lastCol = sh.getLastColumn()
+  var lastRow = sh.getLastRow()
+  var header  = sh.getRange(1, 1, 1, lastCol).getValues()[0]
+
+  // 1. Adicionar colunas Valor Matricula e Valor a Pagar se faltarem
+  if (header.indexOf('Valor Matricula') === -1) {
+    sh.getRange(1, lastCol + 1).setValue('Valor Matricula')
+    sh.getRange(1, lastCol + 2).setValue('Valor a Pagar')
+    Logger.log('✅ Colunas adicionadas: Valor Matricula | Valor a Pagar')
+  } else {
+    Logger.log('ℹ️  Colunas já existem')
+  }
+
+  // 2. Corrigir WhatsApp (#ERROR!) — recupera o número da fórmula e reescreve como texto
+  if (lastRow > 1) {
+    var waCol = header.indexOf('WhatsApp') + 1 // posição dinâmica
+    if (waCol > 0) {
+      for (var row = 2; row <= lastRow; row++) {
+        var cell    = sh.getRange(row, waCol)
+        var formula = cell.getFormula()
+        if (formula && formula !== '') {
+          cell.setNumberFormat('@')
+          cell.setValue(formula) // reescreve o +55... como texto simples
+          Logger.log('Linha ' + row + ' — WhatsApp corrigido: ' + formula)
+        }
+      }
+      Logger.log('✅ Coluna WhatsApp corrigida em ' + (lastRow - 1) + ' linhas')
+    }
+  }
+
+  Logger.log('✅ Correção concluída!')
+}
+
 // ─── SETUP INICIAL (rodar UMA vez) ───────────────────────
 function setupInicial() {
   var id  = getSheetId()
@@ -306,7 +362,8 @@ function setupInicial() {
       'Email','WhatsApp','Instagram','Estado Civil',
       'Endereco','Bairro','Cidade','Estado','CEP',
       'Curso','Modalidade','Forma Pagamento',
-      'Valor Total','Observacoes','Data Hora Assinatura'
+      'Valor Matricula','Valor a Pagar','Valor Total',
+      'Observacoes','Data Hora Assinatura'
     ])
     sh.setFrozenRows(1)
   }
