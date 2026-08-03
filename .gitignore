@@ -1,0 +1,25 @@
+# dependências
+node_modules/
+node_modules.nosync/
+.pnp
+dist/
+build/
+.next/
+out/
+
+# segredos , NUNCA versionar
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+credentials.json
+tokens*.json
+secrets*
+service-account*.json
+
+# sistema
+.DS_Store
+*.log
+.vscode/
+.idea/
