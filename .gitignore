@@ -23,3 +23,8 @@ service-account*.json
 *.log
 .vscode/
 .idea/
+*.bak
+*.bak-*
+*.ANTES-*
+__pycache__/
+*.pyc
