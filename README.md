@@ -14,7 +14,7 @@ Abra `contrato.html` e troque todos os `%%PLACEHOLDER%%`:
 
 | Placeholder | O que é | Exemplo |
 |---|---|---|
-| `%%NOME_INSTRUTOR%%` | Nome do instrutor | `Willy San` |
+| `%%NOME_INSTRUTOR%%` | Nome do instrutor | `Ana Martins` |
 | `%%NOME_EMPRESA%%` | Nome da empresa | `Barbearia San Sol Nascente` |
 | `%%ESPECIALIDADE%%` | Especialidade | `Barbearia Profissional` |
 | `%%NOME_CURSO%%` | Nome do curso (com acento) | `Barbearia na Palma da Mão` |
@@ -68,7 +68,6 @@ Também edite:
 - **Sheets**: auto-criado pelo Apps Script — não precisa criar manualmente
 - **Regex**: usar `[^\u0000-\u007f]` (nunca null byte literal `\x00` — quebra o browser)
 - **Deploy**: `http.client` com SSL desabilitado — não usar `requests`
-- **n8n**: ÚNICO ativo é `auto.danieltoledo.com.br`
 
 ---
 
@@ -76,8 +75,6 @@ Também edite:
 
 | Cliente | Site | Cor | Status |
 |---|---|---|---|
-| Willy San | willysan.com.br/contrato | #C9A84C | ✅ Ativo |
-| Laércio Cortes | laercioprotese.com.br/contrato-curso | #1976D2 | ✅ Ativo |
 
 ---
 
